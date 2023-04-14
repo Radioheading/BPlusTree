@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/brucelee/CS1951_DataStructures/BPT/bpt.hpp
+string
+-
+cstring
+-
+fstream
+-
+vector.hpp
+/home/brucelee/CS1951_DataStructures/BPT/vector.hpp
+
+/home/brucelee/CS1951_DataStructures/BPT/exceptions.hpp
+cstddef
+-
+cstring
+-
+string
+-
+
+/home/brucelee/CS1951_DataStructures/BPT/main.cpp
+iostream
+-
+bpt.hpp
+/home/brucelee/CS1951_DataStructures/BPT/bpt.hpp
+string
+-
+
+/home/brucelee/CS1951_DataStructures/BPT/vector.hpp
+exceptions.hpp
+/home/brucelee/CS1951_DataStructures/BPT/exceptions.hpp
+climits
+-
+cstddef
+-
+
