@@ -8,6 +8,10 @@ class my_string {
  private:
   char info[65];
  public:
+  friend ostream &operator<<(ostream &out, const my_string &obj) {
+    out << obj.info;
+    return out;
+  }
   my_string(const string &obj = "") {
     strcpy(info, obj.c_str());
   }
@@ -20,9 +24,9 @@ class my_string {
 };
 
 int main() {
-  //freopen("test(1).txt", "r", stdin);
+  // freopen("test.txt", "r", stdin);
   //freopen("out2.txt", "w", stdout);
-  ios::sync_with_stdio(false);
+  // ios::sync_with_stdio(false);
   // cin.tie(nullptr);
   // cout.tie(nullptr);
   int n;
@@ -52,6 +56,9 @@ int main() {
     if (operation == "delete") {
       cin >> year;
       pool.erase(name, year);
+    }
+    if (operation == "traverse") {
+      pool.Traverse(8);
     }
   }
   return 0;

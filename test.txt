@@ -1,0 +1,13 @@
+12
+insert flowersforalgernon 1966
+insert cppprimer 2001
+insert a 1
+insert fuck_ls 2023
+insert cppprimer 2002
+insert cppprimer 2000
+insert flowersforalgernon 1968
+find fuck_ls
+find a
+find cppprimer
+find flowersforalgernon
+traverse 0

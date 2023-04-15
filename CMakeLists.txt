@@ -3,4 +3,4 @@ project(BPT)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(BPT main.cpp exceptions.hpp exceptions.hpp vector.hpp)
+add_executable(BPT exceptions.hpp exceptions.hpp vector.hpp submit.cpp)

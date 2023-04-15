@@ -194,7 +194,7 @@ class unrolled_linklist {
     file_stream.seekg(0);
     file_stream.read(reinterpret_cast<char *>(&start), sizeof(start));
     if (start.now_size == 0) { // an empty line when there's nothing
-      std::cout<<'\n';
+      std::cout << '\n';
       return;
     }
     for (int i = 0; i < start.now_size; ++i) {
@@ -202,7 +202,7 @@ class unrolled_linklist {
       file_stream.seekg(start.block_storage[i]);
       file_stream.read(reinterpret_cast<char *>(&current), sizeof(current));
       for (int j = 0; j < current.current_size; ++j) {
-        std::cout<<current.small_books[j].value;
+        std::cout << current.small_books[j].value;
       }
     }
   }
@@ -272,13 +272,13 @@ int main() {
       pool.Insert(name, year);
     }
     if (operation == "find") {
-      std::vector<int>ans = pool.Find(name);
-      if (ans.empty()) std::cout<<"null\n";
+      std::vector<int> ans = pool.Find(name);
+      if (ans.empty()) std::cout << "null\n";
       else {
         for (int j = 0; j < ans.size(); ++j) {
-          std::cout<<ans[j]<<' ';
+          std::cout << ans[j] << ' ';
         }
-        std::cout<<'\n';
+        std::cout << '\n';
       }
     }
     if (operation == "delete") {

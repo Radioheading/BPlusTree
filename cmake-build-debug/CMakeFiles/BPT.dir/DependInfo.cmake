@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/brucelee/CS1951_DataStructures/BPT/main.cpp" "/home/brucelee/CS1951_DataStructures/BPT/cmake-build-debug/CMakeFiles/BPT.dir/main.cpp.o"
+  "/home/brucelee/CS1951_DataStructures/BPT/submit.cpp" "/home/brucelee/CS1951_DataStructures/BPT/cmake-build-debug/CMakeFiles/BPT.dir/submit.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
