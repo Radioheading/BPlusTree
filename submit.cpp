@@ -490,20 +490,20 @@ class vector {
   }
 };
 }
-
-#endif //BPT__VECTOR_HPP_
+#endif
 #ifndef BPT__BPT_HPP_
 #define BPT__BPT_HPP_
 #include <string>
 #include <cstring>
 #include <fstream>
+// #include "vector.hpp"
+#include <iostream>
 
-const int max_size = 500, min_size = 250;
-const int max_son = 500, min_son = 250;
+const int max_size = 304, min_size = 152;
+const int max_son = 304, min_son = 152;
 
 template<class T>
 int LowerBound(T val, T *array, int l, int r) {
-  if (r < 1) return 1;
   int ans = r + 1;
   while (l <= r) {
     int mid = (l + r) >> 1;
@@ -567,6 +567,11 @@ class BPlusTree {
     inline friend bool operator==(const element &cmp_1, const element &cmp_2) {
       return cmp_1.key == cmp_2.key && cmp_1.value == cmp_2.value;
     }
+    element &operator=(const element &obj) {
+      key = obj.key;
+      value = obj.value;
+      return *this;
+    }
     element() : key(""), value(T()) {}
     element(const Key &index, const T &number) : key(index), value(number) {}
   };
@@ -601,21 +606,32 @@ class BPlusTree {
     tree.close(), data.close();
   }
 
-  void Traverse(int pos) {
-    node cur;
-    tree.read(reinterpret_cast<char*>(&cur), sizeof(node));
-    // puts("this is a node");
-    // puts("");
-    if (cur.state == leaf) return;
-    for (int i = 1; i <= cur.son_num; ++i) {
-      Traverse(cur.son_pos[i]);
+  void Traverse() {
+    puts("traversing");
+    data.seekg(data_begin.start_place);
+    data.read(reinterpret_cast<char *>(&current_leaf), leave_size);
+    while (true) {
+      std::cout << "//";
+      for (int i = 1; i <= current_leaf.data_num; ++i) {
+        std:: cout << current_leaf.storage[i].key << ' ' << current_leaf.storage[i].value << '/';
+      }
+      if (current_leaf.next_pos) {
+        data.seekg(current_leaf.next_pos);
+        data.read(reinterpret_cast<char *>(&current_leaf), leave_size);
+      } else {
+        puts("");
+        return;
+      }
     }
   }
 
   sjtu::vector<T> find(const Key &key) {
     element another(key, T());
     sjtu::vector<T> ret;
+    // std::cout << root.son_num << '\n';
     current_node = root;
+    // std::cout << current_node.son_num << '\n';
+    // std::cout << '\n';
     while (current_node.state != leaf) {
       int place = LowerBound(another, current_node.index, 1, current_node.son_num - 1);
       tree.seekg(current_node.son_pos[place]);
@@ -660,7 +676,8 @@ class BPlusTree {
       WriteNode(root), WriteLeaves(first_leaf), UpdateData();
       return;
     }
-    if (!InternalInsert(root, another)) {// root splitting
+    bool checker = InternalInsert(root, another);
+    if (!checker) {// root splitting
       // puts("split root!");
       node new_root, vice_root;
       vice_root.state = root.state, new_root.state = middle;
@@ -675,10 +692,12 @@ class BPlusTree {
       new_root.address = root.address;
       root.address = tree_begin.end_place, tree_begin.end_place += node_size;
       new_root.son_num = 2;
-      new_root.index[1] = vice_root.index[1];
+      new_root.index[1] = root.index[min_son];
+      // std::cout << root.index[min_son].key << ", the middle index\n";
       new_root.son_pos[1] = root.address, new_root.son_pos[2] = vice_root.address;
       WriteNode(root), WriteNode(new_root), WriteNode(vice_root), UpdateTree();
       root = new_root;
+      // std::cout << "root.son_num: " << root.son_num << '\n';
     }
   }
 
@@ -722,7 +741,11 @@ class BPlusTree {
    * find.
    */
   bool InternalInsert(node &todo, const element &another) {
-    // puts("inserting");
+//    puts("inserting");
+//    for (int i = 1; i < todo.son_num; ++i) {
+//      std::cout << todo.index[i].key << ' ';
+//    }
+//    puts("");
     // false means its father ought to be modified
     int pos = LowerBound(another, todo.index, 1, todo.son_num - 1);
     // std::cout << "inserting in: " << pos << '\n';
@@ -760,6 +783,7 @@ class BPlusTree {
           todo.index[i] = todo.index[i - 1];
         }
         todo.son_pos[pos + 1] = new_pos, todo.index[pos] = new_index;
+        // std::cout << "new index: " << new_index.key << '\n';
         if (todo.son_num == max_son) { // going up
           return false;
         } else {
@@ -777,7 +801,7 @@ class BPlusTree {
       if (InternalInsert(todo_node, another)) {
         return true;
       } else { // needing to split
-        // puts("splitting node!\n");
+        // puts("splitting node!");
         node new_node;
         new_node.son_num = todo_node.son_num = min_son;
         for (int i = 1; i <= min_son; ++i) {
@@ -790,14 +814,15 @@ class BPlusTree {
         new_node.address = tree_begin.end_place, tree_begin.end_place += node_size;
         WriteNode(todo_node), WriteNode(new_node), UpdateTree();
         // updating todo
-        element new_index = todo_node.index[1];
-        int new_pos = todo_node.address;
+        element new_index = todo_node.index[min_son];
+        int new_pos = new_node.address;
         for (int i = todo.son_num + 1; i > pos + 1; --i) {
           todo.son_pos[i] = todo.son_pos[i - 1];
         }
         for (int i = todo.son_num; i > pos; --i) {
           todo.index[i] = todo.index[i - 1];
         }
+        // std::cout << "new index: " << new_index.key << '\n';
         todo.son_pos[pos + 1] = new_pos, todo.index[pos] = new_index;
         ++todo.son_num;
         if (todo.son_num == max_son) { // going up
@@ -832,12 +857,13 @@ class BPlusTree {
           data.seekg(todo.son_pos[pos + 1]);
           data.read(reinterpret_cast<char*>(&after), leave_size);
           if (after.data_num > min_size) { // can borrow
-            ++todo_leave.data_num, todo_leave.storage[todo_leave.data_num + 1] = after.storage[1];
+            todo_leave.storage[todo_leave.data_num + 1] = after.storage[1];
+            ++todo_leave.data_num;
             for (int i = 1; i < after.data_num; ++i) {
               after.storage[i] = after.storage[i + 1];
             }
             --after.data_num;
-            todo.index[pos + 1] = after.storage[1];
+            todo.index[pos] = after.storage[1];
             WriteNode(todo), WriteLeaves(todo_leave), WriteLeaves(after);
             return true;
           }
@@ -851,7 +877,7 @@ class BPlusTree {
             }
             ++todo_leave.data_num, todo_leave.storage[1] = before.storage[before.data_num];
             --before.data_num;
-            todo.index[pos] = todo_leave.storage[1];
+            todo.index[pos - 1] = todo_leave.storage[1];
             WriteNode(todo), WriteLeaves(todo_leave), WriteLeaves(before);
             return true;
           }
@@ -1026,6 +1052,8 @@ class BPlusTree {
 };
 #endif //BPT__BPT_HPP_
 
+
+
 #include <iostream>
 #include <string>
 
@@ -1035,6 +1063,10 @@ class my_string {
  private:
   char info[65];
  public:
+  my_string &operator=(const my_string &other) {
+    strcpy(info, other.info);
+    return *this;
+  }
   friend ostream &operator<<(ostream &out, const my_string &obj) {
     out << obj.info;
     return out;
@@ -1052,7 +1084,6 @@ class my_string {
 
 int main() {
   // freopen("test.txt", "r", stdin);
-  //freopen("out2.txt", "w", stdout);
   ios::sync_with_stdio(false);
   cin.tie(nullptr);
   cout.tie(nullptr);
@@ -1083,9 +1114,6 @@ int main() {
     if (operation == "delete") {
       cin >> year;
       pool.erase(name, year);
-    }
-    if (operation == "traverse") {
-      pool.Traverse(8);
     }
   }
   return 0;
