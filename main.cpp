@@ -24,8 +24,7 @@ class my_string {
 };
 
 int main() {
-  // freopen("test.txt", "r", stdin);
-  //freopen("out2.txt", "w", stdout);
+   // freopen("test.txt", "r", stdin);
   // ios::sync_with_stdio(false);
   // cin.tie(nullptr);
   // cout.tie(nullptr);

@@ -82,10 +82,13 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/home/brucelee/CS1951_DataStructures/BPT/bpt.hpp">
+			<Option target="BPT"/>
+		</Unit>
 		<Unit filename="/home/brucelee/CS1951_DataStructures/BPT/exceptions.hpp">
 			<Option target="BPT"/>
 		</Unit>
-		<Unit filename="/home/brucelee/CS1951_DataStructures/BPT/submit.cpp">
+		<Unit filename="/home/brucelee/CS1951_DataStructures/BPT/main.cpp">
 			<Option target="BPT"/>
 		</Unit>
 		<Unit filename="/home/brucelee/CS1951_DataStructures/BPT/vector.hpp">
