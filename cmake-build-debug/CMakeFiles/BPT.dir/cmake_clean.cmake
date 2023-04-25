@@ -1,7 +1,7 @@
 file(REMOVE_RECURSE
   "BPT"
   "BPT.pdb"
-  "CMakeFiles/BPT.dir/main.cpp.o"
+  "CMakeFiles/BPT.dir/submit.cpp.o"
 )
 
 # Per-language clean rules from dependency scanning.

@@ -28,11 +28,11 @@ class my_string {
 };
 
 int main() {
-  freopen("test.txt", "r", stdin);
+  freopen("fcyyu.in", "r", stdin);
   freopen("bptout.txt", "w", stdout);
-  // ios::sync_with_stdio(false);
-  // cin.tie(nullptr);
-  // cout.tie(nullptr);
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+  cout.tie(nullptr);
   int n;
   cin >> n;
   string operation;
@@ -40,6 +40,7 @@ int main() {
   int year;
   BPlusTree<my_string, int> pool("TreeMemory", "DataMemory");
   for (int i = 0; i < n; ++i) {
+    // cout << "operating\n";
     cin >> operation >> name;
     if (operation == "insert") {
       cin >> year;
