@@ -123,32 +123,32 @@ BPT/fast:
 	$(MAKE) -f CMakeFiles/BPT.dir/build.make CMakeFiles/BPT.dir/build
 .PHONY : BPT/fast
 
-submit.o: submit.cpp.o
+main.o: main.cpp.o
 
-.PHONY : submit.o
+.PHONY : main.o
 
 # target to build an object file
-submit.cpp.o:
-	$(MAKE) -f CMakeFiles/BPT.dir/build.make CMakeFiles/BPT.dir/submit.cpp.o
-.PHONY : submit.cpp.o
+main.cpp.o:
+	$(MAKE) -f CMakeFiles/BPT.dir/build.make CMakeFiles/BPT.dir/main.cpp.o
+.PHONY : main.cpp.o
 
-submit.i: submit.cpp.i
+main.i: main.cpp.i
 
-.PHONY : submit.i
+.PHONY : main.i
 
 # target to preprocess a source file
-submit.cpp.i:
-	$(MAKE) -f CMakeFiles/BPT.dir/build.make CMakeFiles/BPT.dir/submit.cpp.i
-.PHONY : submit.cpp.i
+main.cpp.i:
+	$(MAKE) -f CMakeFiles/BPT.dir/build.make CMakeFiles/BPT.dir/main.cpp.i
+.PHONY : main.cpp.i
 
-submit.s: submit.cpp.s
+main.s: main.cpp.s
 
-.PHONY : submit.s
+.PHONY : main.s
 
 # target to generate assembly for a file
-submit.cpp.s:
-	$(MAKE) -f CMakeFiles/BPT.dir/build.make CMakeFiles/BPT.dir/submit.cpp.s
-.PHONY : submit.cpp.s
+main.cpp.s:
+	$(MAKE) -f CMakeFiles/BPT.dir/build.make CMakeFiles/BPT.dir/main.cpp.s
+.PHONY : main.cpp.s
 
 # Help Target
 help:
@@ -159,9 +159,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... BPT"
-	@echo "... submit.o"
-	@echo "... submit.i"
-	@echo "... submit.s"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
 .PHONY : help
 
 

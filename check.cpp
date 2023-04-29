@@ -4,13 +4,13 @@
 #include <cstddef>
 #include <cstring>
 #include <string>
-
+#include <iostream>
 #ifndef BPT__RECYCLE_HPP_
 #define BPT__RECYCLE_HPP_
 #include <string>
 #include <fstream>
 
-const int max_bin = 1e3 + 5;
+const int max_bin = 1e4 + 5;
 
 struct before {
   int size = 0;
@@ -44,6 +44,7 @@ class bin {
   }
 
   int pop_back() {
+    // std::cout << store.address[store.size - 1] << "is getting out\n";
     return store.address[--store.size];
   }
 
@@ -53,6 +54,7 @@ class bin {
   }
 };
 #endif //BPT__RECYCLE_HPP_
+
 
 namespace sjtu {
 
@@ -86,173 +88,6 @@ class container_is_empty : public exception {
 }
 
 #endif //BPT__EXCEPTIONS_HPP_
-
-#ifndef BPT__CACHELIST_HPP_
-#define BPT__CACHELIST_HPP_
-
-#include <iostream>
-#include <fstream>
-
-using std::pair;
-
-const int max_cache = 3000;
-const int map_size = 23475;
-const int mod = 23473;
-int rehash[20] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384};
-
-template<class T>
-class CachePool {
- private:
-  struct cache_node {
-    int address = 0;
-    T data;
-    cache_node *prev = nullptr, *next = nullptr;
-    cache_node(int address_ = 0,
-               cache_node *prev_ = nullptr,
-               cache_node *next_ = nullptr)
-        : address(address_), prev(prev_), next(next_) {}
-  };
-  class cache {
-   public:
-   private:
-    int size = 0;
-    std::fstream &out;
-   public:
-    cache_node *head, *tail;
-    explicit cache(std::fstream &out_) : out(out_), size(0) {
-      head = new cache_node(), tail = new cache_node();
-      head->next = tail, tail->prev = head;
-    }
-    ~cache() {
-      size = 0;
-      cache_node *now = head->next;
-      while (now != tail) {
-        cache_node *temp = now;
-        now = now->next;
-        if (temp->data.changed && temp->address != 0) {
-          temp->data.changed = false;
-          out.seekp(temp->address);
-          out.write(reinterpret_cast<char *>(&temp->data), sizeof(temp->data));
-        }
-        delete temp;
-      }
-      out.close();
-      delete now, delete head;
-    }
-
-    void erase(cache_node *todo) {
-      todo->prev->next = todo->next;
-      todo->next->prev = todo->prev;
-      delete todo;
-      --size;
-    }
-
-    void pop_back() {
-      cache_node *todo = tail->prev;
-      if (todo->data.changed) {
-        todo->data.changed = false;
-        out.seekp(todo->address);
-        out.write(reinterpret_cast<char *>(&todo->data), sizeof(todo->data));
-      }
-      todo->prev->next = tail;
-      tail->prev = todo->prev;
-      delete todo;
-      --size;
-    }
-
-    std::pair<cache_node *, bool> push_front(const T &val) {
-      // std::cout << "pushing front " << val.address << '\n';
-      auto *todo = new cache_node(val.address);
-      // std::cout << "first address: " << val.address << '\n';
-      todo->data = val;
-      todo->prev = head;
-      head->next->prev = todo;
-      todo->next = head->next;
-      head->next = todo;
-      ++size;
-      // std::cout << "size = " << size << '\n';
-      if (size == max_cache) {
-        return std::make_pair(todo, false);
-      }
-      return std::make_pair(todo, true);
-    }
-  };
-  cache block_pool;
-  cache_node *storage[map_size] = {nullptr};
-  pair<cache_node *, int> find(int id) {
-    int pos = id % mod;
-    int cnt = 0;
-    while (pos < map_size) {
-      if (storage[pos] && storage[pos]->address == id) {
-        return pair<cache_node *, int>(storage[pos], pos);
-      } else {
-        pos += rehash[cnt];
-        ++cnt;
-      }
-    }
-    return pair<cache_node *, int>(nullptr, -1);
-  }
-
-  int find_valid(int id) {
-    int pos = id % mod, cnt = 0;
-    while (pos < map_size) {
-      if (storage[pos]) {
-        pos += rehash[cnt];
-        ++cnt;
-      } else {
-        return pos;
-      }
-    }
-    return -1;
-  }
-
-  int find_place(int id) {
-    int pos = id % mod, cnt = 0;
-    while (pos < map_size) {
-      if (storage[pos] && storage[pos]->address == id) {
-        return pos;
-      } else {
-        pos += rehash[cnt];
-        ++cnt;
-      }
-    }
-    return -1;
-  }
-
-  void erase_last() {
-    cache_node *todo = block_pool.tail->prev;
-    if (!todo) return;
-    storage[find_place(todo->address)] = nullptr;
-    block_pool.pop_back();
-  }
-
-  void Delete(cache_node *todo) {
-    storage[find_place(todo->address)] = nullptr;
-    block_pool.erase(todo);
-  }
- public:
-  CachePool(std::fstream &out_) : block_pool(out_) {}
-  bool GetNode(T &todo, int id) {
-    // std::cout << id << '\n';
-    cache_node *search = find(id).first;
-    if (search) {
-      todo = search->data;
-      Delete(search);
-      return true;
-    } else {
-      return false;
-    }
-  }
-  void InsertFront(const T &value) {
-    auto res = block_pool.push_front(value);
-    if (!res.second) {
-      erase_last();
-    }
-    storage[find_valid(value.address)] = res.first;
-  }
-
-};
-#endif //BPT__CACHELIST_HPP_
 
 #ifndef BPT__VECTOR_HPP_
 #define BPT__VECTOR_HPP_
@@ -707,24 +542,19 @@ class vector {
 };
 }
 #endif
+
 #ifndef BPT__BPT_HPP_
 #define BPT__BPT_HPP_
+#include <string>
 #include <cstring>
 #include <fstream>
-#include <iostream>
-#include <string>
-// #include "CacheList.hpp"
-// #include "recycle.hpp"
 // #include "vector.hpp"
+#include <iostream>
+// #include "recycle.hpp"
 
-const int max_size = 202, min_size = 101;
-const int max_son = 202, min_son = 101;
+const int max_size = 4, min_size = 2;
+const int max_son = 4, min_son = 2;
 
-/*
- * @supplementary functions
- * these are several means to locate specific element
- * including upper_bound, lower_bound, lower_search and binary_search
- */
 template<class T>
 int LowerBound(T val, T *array, int l, int r) {
   int ans = r + 1;
@@ -756,9 +586,12 @@ int UpperBound(T val, T *array, int l, int r) {
   int ans = 0;
   while (l <= r) {
     int mid = (l + r) >> 1;
+    // std::cout << mid << ' ' << array[mid].key << '\n';
     if (!(val < array[mid])) {
+      // puts("correct");
       l = mid + 1, ans = mid;
     } else {
+      // puts("fail");
       r = mid - 1;
     }
   }
@@ -766,9 +599,11 @@ int UpperBound(T val, T *array, int l, int r) {
 }
 template<class T>
 int BinarySearch(T val, T *array, int l, int r) {
+  // std::cout << "binary searching: " << l << ' ' << r << '\n';
   int ans = r + 1;
   while (l <= r) {
     int mid = (l + r) >> 1;
+    // std::cout << mid << ' ' << val.key << ' ' << array[mid].key << '\n';
     if (val.key < array[mid].key) {
       r = mid - 1;
     } else if (array[mid].key < val.key) {
@@ -809,18 +644,14 @@ class BPlusTree {
   };
   struct node {
     int address = 0;
-    bool changed = false;
     NodeState state = middle;
     int son_num = 0, son_pos[max_son + 1];
     element index[max_son + 1];
-    node(bool did = false) : changed(did) {}
   } current_node;
   struct leaves {
     int address = 0;
-    bool changed = false;
     int next_pos = 0, data_num = 0;
     element storage[max_size + 1];
-    leaves(bool did = false) : changed(did) {}
   } current_leaf;
   struct begin_tree {
     int start_place = sizeof(begin_tree);
@@ -831,42 +662,34 @@ class BPlusTree {
     int end_place = sizeof(begin_data);
   } data_begin;
   const int node_size = sizeof(node);
-  const int leaf_size = sizeof(leaves);
-  CachePool<node> node_cache;
-  CachePool<leaves> leaf_cache;
+  const int leave_size = sizeof(leaves);
  public:
-  friend class CachePool<node>;
-  friend class CachePool<leaves>;
   node root;
   BPlusTree(const std::string &_tree_name, const std::string &_data_name)
       : tree_name(_tree_name),
         data_name(_data_name),
         tree_bin(_tree_name + "'s garbage"),
-        data_bin(_data_name + "'s garbage"),
-        node_cache(tree),
-        leaf_cache(data) {
+        data_bin(_data_name + "'s garbage") {
     init();
   }
   ~BPlusTree() {
-    UpdateTree(), UpdateData();
-    tree.seekp(root.address);
-    tree.write(reinterpret_cast<char *>(&root), node_size);
-  };
+    tree.close(), data.close();
+  }
 
   void Traverse() {
-    std::cout << "traversing\n";
-    ReadLeaf(current_leaf, data_begin.start_place);
+    puts("traversing");
+    data.seekg(data_begin.start_place);
+    data.read(reinterpret_cast<char *>(&current_leaf), leave_size);
     while (true) {
       std::cout << "//";
       for (int i = 1; i <= current_leaf.data_num; ++i) {
         std::cout << current_leaf.storage[i].key << ' ' << current_leaf.storage[i].value << '/';
       }
-      WriteLeaves(current_leaf);
       if (current_leaf.next_pos) {
-        std::cout << '\n';
-        ReadLeaf(current_leaf, current_leaf.next_pos);
+        data.seekg(current_leaf.next_pos);
+        data.read(reinterpret_cast<char *>(&current_leaf), leave_size);
       } else {
-        std::cout << '\n';
+        puts("");
         return;
       }
     }
@@ -875,33 +698,35 @@ class BPlusTree {
   sjtu::vector<T> find(const Key &key) {
     element another(key, -1);
     sjtu::vector<T> ret;
+    // std::cout << root.son_num << '\n';
     current_node = root;
+    // std::cout << current_node.son_num << '\n';
+    // std::cout << '\n';
     while (current_node.state != leaf) {
-      if (current_node.son_num == 0) {
-        return ret;
-      }
+      if (current_node.son_num == 0) return ret;
       int place = LowerBound(another, current_node.index, 1, current_node.son_num - 1);
-      ReadNode(current_node, current_node.son_pos[place]);
-      WriteNode(current_node);
-    }
-    if (current_node.son_num == 0) {
-      return ret;
+      tree.seekg(current_node.son_pos[place]);
+      tree.read(reinterpret_cast<char *>(&current_node), sizeof(current_node));
     }
     int search = LowerSearch(another, current_node.index, 1, current_node.son_num - 1);
-    ReadLeaf(current_leaf, current_node.son_pos[search]);
+    data.seekg(current_node.son_pos[search]);
+    data.read(reinterpret_cast<char *>(&current_leaf), sizeof(current_leaf));
     int pos = BinarySearch(another, current_leaf.storage, 1, current_leaf.data_num);
+    // std::cout << "starting position: " << pos << '\n';
     while (true) {
+      // std::cout << "data number: " << current_leaf.data_num << '\n';
       for (int i = pos; i <= current_leaf.data_num; ++i) {
+        // std::cout << "checking\n";
+        // std::cout << current_leaf.storage[i].key << '\n';
         if (current_leaf.storage[i].key == key) {
           ret.push_back(current_leaf.storage[i].value);
         } else {
-          WriteLeaves(current_leaf);
           return ret;
         }
       }
-      WriteLeaves(current_leaf);
-      if (current_leaf.next_pos) { // getting next leaf
-        ReadLeaf(current_leaf, current_leaf.next_pos);
+      if (current_leaf.next_pos) {
+        data.seekg(current_leaf.next_pos);
+        data.read(reinterpret_cast<char *>(&current_leaf), sizeof(current_leaf));
         pos = 1;
       } else break;
     }
@@ -911,20 +736,18 @@ class BPlusTree {
   void insert(const Key &key, const T &val) {
     element another(key, val);
     if (root.son_num == 0) { // nothing exist, first insert
-      leaves first_leaf(false);
-      first_leaf.address = data_begin.start_place;
-      if (data_begin.start_place == data_begin.end_place) {
-        data_begin.end_place += leaf_size;
-      }
+      leaves first_leaf;
+      first_leaf.address = data_begin.start_place, data_begin.end_place += leave_size;
       first_leaf.data_num = 1, first_leaf.storage[1] = another;
       root.son_num = 1, root.son_pos[1] = first_leaf.address;
-      data.seekp(first_leaf.address);
-      data.write(reinterpret_cast<char *>(&first_leaf), sizeof(first_leaf));
-      WriteLeaves(first_leaf);
+      // std::cout << root.index[1].key << '\n';
+      WriteNode(root), WriteLeaves(first_leaf), UpdateData();
       return;
     }
-    if (!InternalInsert(root, another)) {// root splitting
-      node new_root(false), vice_root(false);
+    bool checker = InternalInsert(root, another);
+    if (!checker) {// root splitting
+      // puts("split root!");
+      node new_root, vice_root;
       vice_root.state = root.state, new_root.state = middle;
       root.son_num = vice_root.son_num = min_son;
       for (int i = 1; i <= min_son; ++i) {
@@ -946,13 +769,11 @@ class BPlusTree {
       }
       new_root.son_num = 2;
       new_root.index[1] = root.index[min_son];
+      // std::cout << root.index[min_son].key << ", the middle index\n";
       new_root.son_pos[1] = root.address, new_root.son_pos[2] = vice_root.address;
-      tree.seekp(vice_root.address);
-      tree.write(reinterpret_cast<char *>(&vice_root), node_size);
-      tree.seekp(root.address);
-      tree.write(reinterpret_cast<char *>(&root), node_size);
-      WriteNode(root), WriteNode(vice_root);
+      WriteNode(root), WriteNode(new_root), WriteNode(vice_root), UpdateTree();
       root = new_root;
+      // std::cout << "root.son_num: " << root.son_num << '\n';
     }
   }
 
@@ -962,10 +783,12 @@ class BPlusTree {
     if (!checker && root.state == middle && root.son_num == 1) {
       // lowering the tree
       node new_root;
-      ReadNode(new_root, root.son_pos[1]);
+      tree.seekg(root.son_pos[1]);
+      tree.read(reinterpret_cast<char *>(&new_root), node_size);
       tree_bin.push_back(new_root.address);
       new_root.address = root.address;
       root = new_root;
+      WriteNode(root);
     }
   }
 
@@ -978,8 +801,7 @@ class BPlusTree {
       tree.write(reinterpret_cast<char *>(&tree_begin), sizeof(tree_begin));
       data.write(reinterpret_cast<char *>(&data_begin), sizeof(data_begin));
       root.address = tree_begin.start_place, root.son_num = 0, root.state = leaf;
-      tree.seekp(root.address);
-      tree.write(reinterpret_cast<char *>(&root), node_size);
+      WriteNode(root);
       tree.close(), data.close();
       tree.open(tree_name), data.open(data_name);
     } else {
@@ -989,34 +811,48 @@ class BPlusTree {
       tree.read(reinterpret_cast<char *>(&root), sizeof(root));
     }
   }
-
+  /*
+   * -------------------------function: InternalInsert------------------------------
+   * Inserting recursively to save information, dealing with the current node's son
+   * and maintain the node. the root is special, so it is handled in public function
+   * find.
+   */
   bool InternalInsert(node &todo, const element &another) {
+//    puts("inserting");
+//    for (int i = 1; i < todo.son_num; ++i) {
+//      std::cout << todo.index[i].key << ' ';
+//    }
+//    puts("");
     // false means its father ought to be modified
     int pos = LowerBound(another, todo.index, 1, todo.son_num - 1);
+    // std::cout << "inserting in: " << pos << '\n';
     if (todo.state == leaf) {
-      leaves todo_leaf;
-      ReadLeaf(todo_leaf, todo.son_pos[pos]);
-      int search = LowerBound(another, todo_leaf.storage, 1, todo_leaf.data_num);
-      for (int i = todo_leaf.data_num + 1; i > search; --i) {
-        todo_leaf.storage[i] = todo_leaf.storage[i - 1];
+      // std::cout << "finding data\n";
+      leaves todo_leave;
+      data.seekg(todo.son_pos[pos]);
+      data.read(reinterpret_cast<char *>(&todo_leave), sizeof(todo_leave));
+      int search = LowerBound(another, todo_leave.storage, 1, todo_leave.data_num);
+      // std::cout << "inserting data in: " << pos << '\n';
+      for (int i = todo_leave.data_num + 1; i > search; --i) {
+        todo_leave.storage[i] = todo_leave.storage[i - 1];
       }
-      todo_leaf.storage[search] = another;
-      ++todo_leaf.data_num, todo_leaf.changed = true;
-      if (todo_leaf.data_num == max_size) {// block splitting
-        leaves new_block(false);
-        new_block.data_num = min_size, todo_leaf.data_num = min_size;
+      todo_leave.storage[search] = another;
+      ++todo_leave.data_num;
+      if (todo_leave.data_num == max_size) {// block splitting
+        // std::cout << "splitting leaves\n";
+        // updating the leaves
+        leaves new_block;
+        new_block.data_num = min_size, todo_leave.data_num = min_size;
         for (int i = 1; i <= min_size; ++i) {
-          new_block.storage[i] = todo_leaf.storage[i + min_size];
+          new_block.storage[i] = todo_leave.storage[i + min_size];
         }
         if (data_bin.empty()) {
-          new_block.address = data_begin.end_place, data_begin.end_place += leaf_size;
+          new_block.address = data_begin.end_place, data_begin.end_place += leave_size;
         } else {
           new_block.address = data_bin.pop_back();
         }
-        new_block.next_pos = todo_leaf.next_pos, todo_leaf.next_pos = new_block.address;
-        data.seekp(new_block.address);
-        data.write(reinterpret_cast<char *>(&new_block), leaf_size);
-        WriteLeaves(todo_leaf), WriteLeaves(new_block);
+        new_block.next_pos = todo_leave.next_pos, todo_leave.next_pos = new_block.address;
+        WriteLeaves(todo_leave), WriteLeaves(new_block), UpdateData();
         // updating the node
         ++todo.son_num;
         element new_index = new_block.storage[1];
@@ -1028,7 +864,7 @@ class BPlusTree {
           todo.index[i] = todo.index[i - 1];
         }
         todo.son_pos[pos + 1] = new_pos, todo.index[pos] = new_index;
-        todo.changed = true;
+        // std::cout << "new index: " << new_index.key << '\n';
         if (todo.son_num == max_son) { // going up
           return false;
         } else {
@@ -1036,19 +872,18 @@ class BPlusTree {
           return true;
         }
       } else {
-        WriteNode(todo);
-        WriteLeaves(todo_leaf);
+        WriteLeaves(todo_leave);
         return true;
       }
     } else { // this is the node
       node todo_node;
-      ReadNode(todo_node, todo.son_pos[pos]);
+      tree.seekg(todo.son_pos[pos]);
+      tree.read(reinterpret_cast<char *>(&todo_node), sizeof(todo_node));
       if (InternalInsert(todo_node, another)) {
-        WriteNode(todo);
         return true;
       } else { // needing to split
-        todo_node.changed = true;
-        node new_node(false);
+        // puts("splitting node!");
+        node new_node;
         new_node.son_num = todo_node.son_num = min_son;
         for (int i = 1; i <= min_son; ++i) {
           new_node.son_pos[i] = todo_node.son_pos[i + min_son];
@@ -1062,9 +897,7 @@ class BPlusTree {
         } else {
           new_node.address = tree_bin.pop_back();
         }
-        tree.seekp(new_node.address);
-        tree.write(reinterpret_cast<char *>(&new_node), node_size);
-        WriteNode(todo_node), WriteNode(new_node);
+        WriteNode(todo_node), WriteNode(new_node), UpdateTree();
         // updating todo
         element new_index = todo_node.index[min_son];
         int new_pos = new_node.address;
@@ -1074,8 +907,9 @@ class BPlusTree {
         for (int i = todo.son_num; i > pos; --i) {
           todo.index[i] = todo.index[i - 1];
         }
+        // std::cout << "new index: " << new_index.key << '\n';
         todo.son_pos[pos + 1] = new_pos, todo.index[pos] = new_index;
-        ++todo.son_num, todo.changed = true;
+        ++todo.son_num;
         if (todo.son_num == max_son) { // going up
           return false;
         } else {
@@ -1089,64 +923,57 @@ class BPlusTree {
   bool InternalErase(const element &another, node &todo) {
     int pos = LowerBound(another, todo.index, 1, todo.son_num - 1);
     if (todo.state == leaf) {
-      leaves todo_leaf;
-      ReadLeaf(todo_leaf, todo.son_pos[pos]);
-      int search = UpperBound(another, todo_leaf.storage, 1, todo_leaf.data_num);
-      if (!(another == todo_leaf.storage[search])) {
+      leaves todo_leave;
+      data.seekg(todo.son_pos[pos]);
+      data.read(reinterpret_cast<char *>(&todo_leave), leave_size);
+      int search = UpperBound(another, todo_leave.storage, 1, todo_leave.data_num);
+      if (!(another == todo_leave.storage[search])) {
         // not even deleting
-        WriteNode(todo);
-        WriteLeaves(todo_leaf);
         return true;
       }
-      for (int i = search; i < todo_leaf.data_num; ++i) {
-        todo_leaf.storage[i] = todo_leaf.storage[i + 1];
+      for (int i = search; i < todo_leave.data_num; ++i) {
+        todo_leave.storage[i] = todo_leave.storage[i + 1];
       }
-      --todo_leaf.data_num, todo_leaf.changed = true;
-      if (todo_leaf.data_num < min_size) {
-        // std::cout << "adjusting" << '\n';
+      --todo_leave.data_num;
+      if (todo_leave.data_num < min_size) {
         // leaf adjusting
-        todo.changed = true;
         leaves before, after;
         if (pos < todo.son_num) { // borrowing behind
-          ReadLeaf(after, todo.son_pos[pos + 1]);
+          data.seekg(todo.son_pos[pos + 1]);
+          data.read(reinterpret_cast<char *>(&after), leave_size);
           if (after.data_num > min_size) { // can borrow
-            todo_leaf.storage[todo_leaf.data_num + 1] = after.storage[1];
-            ++todo_leaf.data_num;
+            todo_leave.storage[todo_leave.data_num + 1] = after.storage[1];
+            ++todo_leave.data_num;
             for (int i = 1; i < after.data_num; ++i) {
               after.storage[i] = after.storage[i + 1];
             }
-            --after.data_num, after.changed = true;
+            --after.data_num;
             todo.index[pos] = after.storage[1];
-            WriteNode(todo), WriteLeaves(todo_leaf), WriteLeaves(after);
+            WriteNode(todo), WriteLeaves(todo_leave), WriteLeaves(after);
             return true;
           }
         }
         if (pos > 1) { // borrowing front
-          ReadLeaf(before, todo.son_pos[pos - 1]);
-          if (before.data_num > min_size) {// can borrow
-            if (after.address) {
-              WriteLeaves(after);
+          data.seekg(todo.son_pos[pos - 1]);
+          data.read(reinterpret_cast<char *>(&before), leave_size);
+          if (before.data_num > min_size) { // can borrow
+            for (int i = todo_leave.data_num + 1; i > 1; --i) {
+              todo_leave.storage[i] = todo_leave.storage[i - 1];
             }
-            for (int i = todo_leaf.data_num + 1; i > 1; --i) {
-              todo_leaf.storage[i] = todo_leaf.storage[i - 1];
-            }
-            ++todo_leaf.data_num, todo_leaf.storage[1] = before.storage[before.data_num];
-            --before.data_num, before.changed = true;
-            todo.index[pos - 1] = todo_leaf.storage[1];
-            WriteNode(todo), WriteLeaves(todo_leaf), WriteLeaves(before);
+            ++todo_leave.data_num, todo_leave.storage[1] = before.storage[before.data_num];
+            --before.data_num;
+            todo.index[pos - 1] = todo_leave.storage[1];
+            WriteNode(todo), WriteLeaves(todo_leave), WriteLeaves(before);
             return true;
           }
         }
         if (pos < todo.son_num) {
-          if (before.next_pos) {
-            WriteLeaves(before);
-          }
           // merging the one behind
           for (int i = 1; i <= after.data_num; ++i) {
-            todo_leaf.storage[todo_leaf.data_num + i] = after.storage[i];
+            todo_leave.storage[todo_leave.data_num + i] = after.storage[i];
           }
-          todo_leaf.data_num += after.data_num, todo_leaf.next_pos = after.next_pos;
-          WriteLeaves(todo_leaf), data_bin.push_back(after.address);
+          todo_leave.data_num += after.data_num, todo_leave.next_pos = after.next_pos;
+          WriteLeaves(todo_leave), data_bin.push_back(after.address);
           for (int i = pos + 1; i < todo.son_num; ++i) {
             todo.son_pos[i] = todo.son_pos[i + 1];
           }
@@ -1162,16 +989,12 @@ class BPlusTree {
           }
         }
         if (pos > 1) {
-          if (after.next_pos) {
-            WriteLeaves(after);
-          }
           // merging the one at front
-          for (int i = 1; i <= todo_leaf.data_num; ++i) {
-            before.storage[before.data_num + i] = todo_leaf.storage[i];
+          for (int i = 1; i <= todo_leave.data_num; ++i) {
+            before.storage[before.data_num + i] = todo_leave.storage[i];
           }
-          before.data_num += todo_leaf.data_num, before.next_pos = todo_leaf.next_pos;
-          before.changed = true;
-          WriteLeaves(before), data_bin.push_back(todo_leaf.address);
+          before.data_num += todo_leave.data_num, before.next_pos = todo_leave.next_pos;
+          WriteLeaves(before), data_bin.push_back(todo_leave.address);
           for (int i = pos; i < todo.son_num; ++i) {
             todo.son_pos[i] = todo.son_pos[i + 1];
           }
@@ -1187,25 +1010,25 @@ class BPlusTree {
           }
         }
         // only son, can't do anything
-        WriteNode(todo), WriteLeaves(todo_leaf);
+        WriteLeaves(todo_leave);
         return true;
       } else {
         // need no adjustment
-        WriteNode(todo), WriteLeaves(todo_leaf);
+        WriteLeaves(todo_leave);
         return true;
       }
     } else {
       node todo_node;
-      ReadNode(todo_node, todo.son_pos[pos]);
+      tree.seekg(todo.son_pos[pos]);
+      tree.read(reinterpret_cast<char *>(&todo_node), node_size);
       if (InternalErase(another, todo_node)) {
-        WriteNode(todo);
         return true;
       } else {
-        todo_node.changed = true, todo.changed = true;
         node before, after;
         // node adjusting
         if (pos < todo.son_num) { // borrowing behind
-          ReadNode(after, todo.son_pos[pos + 1]);
+          tree.seekg(todo.son_pos[pos + 1]);
+          tree.read(reinterpret_cast<char *>(&after), node_size);
           if (after.son_num > min_size) { // can borrow
             todo_node.son_pos[todo_node.son_num + 1] = after.son_pos[1];
             todo_node.index[todo_node.son_num] = todo.index[pos], todo.index[pos] = after.index[1];
@@ -1216,17 +1039,15 @@ class BPlusTree {
             for (int i = 1; i < after.son_num - 1; ++i) {
               after.index[i] = after.index[i + 1];
             }
-            --after.son_num, after.changed = true;
+            --after.son_num;
             WriteNode(todo), WriteNode(todo_node), WriteNode(after);
             return true;
           }
         }
         if (pos > 1) { // borrowing front
-          ReadNode(before, todo.son_pos[pos - 1]);
+          tree.seekg(todo.son_pos[pos - 1]);
+          tree.read(reinterpret_cast<char *>(&before), node_size);
           if (before.son_num > min_size) { // can borrow
-            if (after.address) {
-              WriteNode(after);
-            }
             for (int i = todo_node.son_num + 1; i > 1; --i) {
               todo_node.son_pos[i] = todo_node.son_pos[i - 1];
             }
@@ -1237,15 +1058,12 @@ class BPlusTree {
             todo_node.index[1] = todo.index[pos - 1];
             todo.index[pos - 1] = before.index[before.son_num - 1];
             ++todo_node.son_num;
-            --before.son_num, before.changed = true;
+            --before.son_num;
             WriteNode(todo), WriteNode(todo_node), WriteNode(before);
             return true;
           }
         }
         if (pos < todo.son_num) {
-          if (before.address) {
-            WriteNode(before);
-          }
           // merging the one behind
           for (int i = 1; i <= after.son_num; ++i) {
             todo_node.son_pos[todo_node.son_num + i] = after.son_pos[i];
@@ -1271,9 +1089,6 @@ class BPlusTree {
           }
         }
         if (pos > 1) {
-          if (after.address) {
-            WriteNode(after);
-          }
           // merging the one at front
           for (int i = 1; i <= todo_node.son_num; ++i) {
             before.son_pos[before.son_num + i] = todo_node.son_pos[i];
@@ -1300,37 +1115,16 @@ class BPlusTree {
         }
       }
     }
-    WriteNode(todo);
     return true;
   }
-  void ReadNode(node &obj, int place) {
-    // std::cout << "node place: " << place << '\n';
-    if (!node_cache.GetNode(obj, place)) {
-      tree.seekg(place);
-      tree.read(reinterpret_cast<char *>(&obj), sizeof(obj));
-      // std::cout << "node_cache miss!\n";
-    } else {
-      // std::cout << "node_cache shot!\n";
-    }
-  }
-  void ReadLeaf(leaves &obj, int place) {
-    // std::cout << "leaf place: " << place << '\n';
-    if (!leaf_cache.GetNode(obj, place)) {
-      data.seekg(place);
-      data.read(reinterpret_cast<char *>(&obj), sizeof(obj));
-      // std::cout << "leaf_cache miss!\n";
-    } else {
-      // std::cout << "leaf_cache shot!\n";
-    }
-  }
+
   void WriteNode(node &obj) {
-    if (obj.address == 8) {// do not write root!
-      return;
-    }
-    node_cache.InsertFront(obj);
+    tree.seekp(obj.address);
+    tree.write(reinterpret_cast<char *>(&obj), sizeof(obj));
   }
   void WriteLeaves(leaves &obj) {
-    leaf_cache.InsertFront(obj);
+    data.seekp(obj.address);
+    data.write(reinterpret_cast<char *>(&obj), sizeof(obj));
   }
   void UpdateData() {
     data.seekp(0);
@@ -1342,8 +1136,8 @@ class BPlusTree {
   }
 };
 #endif //BPT__BPT_HPP_
+
 #include <iostream>
-// #include "bpt.hpp"
 #include <string>
 
 using namespace std;
@@ -1372,8 +1166,8 @@ class my_string {
 };
 
 int main() {
-//  freopen("input.txt", "r", stdin);
-//  freopen("bptout.txt", "w", stdout);
+  freopen("input.txt", "r", stdin);
+  freopen("check.txt", "w", stdout);
   ios::sync_with_stdio(false);
   cin.tie(nullptr);
   cout.tie(nullptr);
@@ -1382,17 +1176,14 @@ int main() {
   string operation;
   string name;
   int year;
-  BPlusTree<my_string, int> pool("TreeMemory", "DataMemory");
+  BPlusTree<my_string, int> pool("Tree", "Data");
   for (int i = 0; i < n; ++i) {
     cin >> operation >> name;
-    // std::cout << operation << ' ' << name << ' ';
     if (operation == "insert") {
       cin >> year;
-      // std::cout << year << '\n';
       pool.insert(name, year);
     }
     if (operation == "find") {
-      // std::cout << '\n';
       auto ret = pool.find(name);
       if (!ret.empty()) {
         for (int j = 0; j < ret.size(); ++j) {
@@ -1406,11 +1197,7 @@ int main() {
     }
     if (operation == "delete") {
       cin >> year;
-      // std::cout << year << '\n';
       pool.erase(name, year);
-//      if (year < 100) {
-//        pool.Traverse();
-//      }
     }
   }
   return 0;

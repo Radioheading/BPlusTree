@@ -57,27 +57,27 @@ include CMakeFiles/BPT.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/BPT.dir/flags.make
 
-CMakeFiles/BPT.dir/submit.cpp.o: CMakeFiles/BPT.dir/flags.make
-CMakeFiles/BPT.dir/submit.cpp.o: ../submit.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/brucelee/CS1951_DataStructures/BPT/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/BPT.dir/submit.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/BPT.dir/submit.cpp.o -c /home/brucelee/CS1951_DataStructures/BPT/submit.cpp
+CMakeFiles/BPT.dir/main.cpp.o: CMakeFiles/BPT.dir/flags.make
+CMakeFiles/BPT.dir/main.cpp.o: ../main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/brucelee/CS1951_DataStructures/BPT/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/BPT.dir/main.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/BPT.dir/main.cpp.o -c /home/brucelee/CS1951_DataStructures/BPT/main.cpp
 
-CMakeFiles/BPT.dir/submit.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/BPT.dir/submit.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/brucelee/CS1951_DataStructures/BPT/submit.cpp > CMakeFiles/BPT.dir/submit.cpp.i
+CMakeFiles/BPT.dir/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/BPT.dir/main.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/brucelee/CS1951_DataStructures/BPT/main.cpp > CMakeFiles/BPT.dir/main.cpp.i
 
-CMakeFiles/BPT.dir/submit.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/BPT.dir/submit.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/brucelee/CS1951_DataStructures/BPT/submit.cpp -o CMakeFiles/BPT.dir/submit.cpp.s
+CMakeFiles/BPT.dir/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/BPT.dir/main.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/brucelee/CS1951_DataStructures/BPT/main.cpp -o CMakeFiles/BPT.dir/main.cpp.s
 
 # Object files for target BPT
 BPT_OBJECTS = \
-"CMakeFiles/BPT.dir/submit.cpp.o"
+"CMakeFiles/BPT.dir/main.cpp.o"
 
 # External object files for target BPT
 BPT_EXTERNAL_OBJECTS =
 
-BPT: CMakeFiles/BPT.dir/submit.cpp.o
+BPT: CMakeFiles/BPT.dir/main.cpp.o
 BPT: CMakeFiles/BPT.dir/build.make
 BPT: CMakeFiles/BPT.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/brucelee/CS1951_DataStructures/BPT/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable BPT"

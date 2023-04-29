@@ -40,7 +40,6 @@ int main() {
   int year;
   BPlusTree<my_string, int> pool("TreeMemory", "DataMemory");
   for (int i = 0; i < n; ++i) {
-    // cout << "operating\n";
     cin >> operation >> name;
     if (operation == "insert") {
       cin >> year;
@@ -62,7 +61,7 @@ int main() {
       cin >> year;
       pool.erase(name, year);
     }
-    // pool.Traverse();
+//    pool.Traverse();
   }
   return 0;
 }
