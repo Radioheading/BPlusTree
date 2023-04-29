@@ -4,8 +4,8 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include "CacheList.hpp"
-#include "recycle.hpp"
+#include "../utils/CacheList.hpp"
+#include "../utils/recycle.hpp"
 #include "vector.hpp"
 
 const int max_size = 202, min_size = 101;

@@ -1,5 +1,5 @@
 #include <iostream>
-#include "bpt.hpp"
+#include "src/bpt.hpp"
 #include <string>
 
 using namespace std;

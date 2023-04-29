@@ -1,6 +1,6 @@
 #ifndef BPT__VECTOR_HPP_
 #define BPT__VECTOR_HPP_
-#include "exceptions.hpp"
+#include "../utils/exceptions.hpp"
 
 #include <climits>
 #include <cstddef>
